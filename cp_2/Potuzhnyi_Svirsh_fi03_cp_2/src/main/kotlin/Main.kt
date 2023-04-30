@@ -98,7 +98,7 @@ fun main() {
     File(outputFilePath).appendText("Ir open:" + System.lineSeparator())
     File(outputFilePath).appendText(open_r.toString() + System.lineSeparator())
     r_values.forEachIndexed { index, r ->
-        File(outputFilePath).appendText("Ir ${index + 1}:" + System.lineSeparator())
+        File(outputFilePath).appendText("Ir ${keys[index].length}:" + System.lineSeparator())
         File(outputFilePath).appendText(r.toString() + System.lineSeparator())
     }
 
