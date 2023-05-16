@@ -62,7 +62,7 @@ fun I(text: String, charset: String = CypherText.charset): Double {
     return sum / (text.length * (text.length - 1))
 }
 
-fun get_r(text: String, start: Int = 2, end: Int = 30): Map<Int, Double> {
+fun get_r(text: String, start: Int = 1, end: Int = 30): Map<Int, Double> {
     val match = mutableMapOf<Int, Double>()
     for (r in start..end) {
         val blocks = Array(r) { "" }
@@ -92,8 +92,8 @@ fun main() {
         File(outputFilePath).appendText("Decoded: $decoded" + System.lineSeparator())
     }
 
-    val open_r = get_r(openText)
-    val r_values = encodings.map(::get_r)
+    val open_r = I(openText)
+    val r_values = encodings.map(::I)
 
     File(outputFilePath).appendText("Ir open:" + System.lineSeparator())
     File(outputFilePath).appendText(open_r.toString() + System.lineSeparator())
@@ -106,7 +106,7 @@ fun main() {
     val cypher = File(cypherFileName).readText().uppercase().filter { it in CypherText.charset }
     
     val matchDict = get_r(cypher)
-    val matchList = matchDict.entries.sortedBy { (_, value) -> abs(value - 0.055) }
+    val matchList = matchDict.entries.sortedBy { (_, value) -> abs(value - open_r) }
     println("for encoded text")
     println(matchDict)
     println(matchList)
