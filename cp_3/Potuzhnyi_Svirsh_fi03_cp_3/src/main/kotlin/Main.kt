@@ -67,6 +67,19 @@ fun linearDecode(text: List<Int>, a: Int, b: Int, charset: String): String {
     return result
 }
 
+fun convertBackToText(arr: List<Int>, charset: String): String {
+    val mod = charset.length
+    val sb = StringBuilder()
+    for (num in arr) {
+        val first = num / mod
+        val second = num % mod
+        sb.append(charset[first])
+        sb.append(charset[second])
+        sb.append(" ")
+    }
+    return sb.toString()
+}
+
 fun convertToBigrams(text: String, charset: String): MutableList<Int> {
     val arr = mutableListOf<Int>()
     val mod = charset.length
@@ -89,15 +102,18 @@ fun main() {
     val cypher =  {}.javaClass.getResource("/14.txt").readText(Charset.forName("UTF-8")).filter{it in alphabet1}
 
     for (charset in listOf(alphabet1, alphabet2)) {
-        val bigrOpenMostFreq = convertToBigrams(openMostFrequent, charset)
-        val bigrCyph = convertToBigrams(cypher, charset)
-        val cyphBigrams = getProbability(bigrCyph)
-        val cyphMostFrequent = cyphBigrams.keys.sortedByDescending { cyphBigrams[it] }.take(5)
+        val bigramOpenMostFreq = convertToBigrams(openMostFrequent, charset)
+
+        val bigramCypher = convertToBigrams(cypher, charset)
+        val bigramProbabilityCypher = getProbability(bigramCypher)
+        val cypherMostFrequent = bigramProbabilityCypher.keys.sortedByDescending { bigramProbabilityCypher[it] }.take(5)
+        //println("Most frequent bigrams in cypher: " + convertBackToText(cypherMostFrequent.toList(), charset))
+
         val mod = charset.length * charset.length
 
         val toSolve = mutableSetOf<Quadruple<Int, Int, Int, Int>>()
-        val combinationsX = bigrOpenMostFreq.flatMap { x1 -> bigrOpenMostFreq.map { x2 -> Pair(x1, x2) } }.filterNot { it.first == it.second }
-        val combinationsY = cyphMostFrequent.flatMap { y1 -> cyphMostFrequent.map { y2 -> Pair(y1, y2) } }.filterNot { it.first == it.second }
+        val combinationsX = bigramOpenMostFreq.flatMap { x1 -> bigramOpenMostFreq.map { x2 -> Pair(x1, x2) } }.filterNot { it.first == it.second }
+        val combinationsY = cypherMostFrequent.flatMap { y1 -> cypherMostFrequent.map { y2 -> Pair(y1, y2) } }.filterNot { it.first == it.second }
         for ((x1, x2) in combinationsX) {
             for ((y1, y2) in combinationsY) {
                 toSolve.add(Quadruple((x1 - x2 + mod) % mod, (y1 - y2 + mod) % mod, x1, y1))
@@ -115,22 +131,27 @@ fun main() {
             }
         }
 
-        val decoded = keys.map { key -> linearDecode(bigrCyph, key.first, key.second, charset) }
+        //println(keys.toList().toString())
 
-        val filtered = decoded.filterNot { dec -> impossibleBigrams.any { bigram -> dec.contains(bigram) } }
+        val decoded = keys.map { key -> Pair(key, linearDecode(bigramCypher, key.first, key.second, charset)) }
 
-        val finalList = mutableListOf<String>()
-        for (dec in filtered) {
+        val filtered = decoded.filterNot { pair -> impossibleBigrams.any { bigram -> pair.second.contains(bigram) } }
+
+
+        val finalList = mutableListOf<Pair<Pair<Int, Int>, String>>()
+        for (pair in filtered) {
+            val dec = pair.second
             val decBigr = convertToBigrams(dec, charset)
             val decFreq = getProbability(decBigr)
             val decMostFrequent = decFreq.keys.sortedByDescending { decFreq[it] }.take(15)
-            if (decMostFrequent.intersect(bigrOpenMostFreq.toSet()).size > 3) {
-                finalList.add(dec)
+            if (decMostFrequent.intersect(bigramOpenMostFreq.toSet()).size > 3) {
+                finalList.add(pair)
             }
         }
         if(finalList.isNotEmpty()) {
-            for (finalText in finalList) {
-                val correspondingKey = keys.first { key -> linearDecode(bigrCyph, key.first, key.second, charset) == finalText }
+            for (finalPair in finalList) {
+                val correspondingKey = finalPair.first
+                val finalText = finalPair.second
                 println("Charset: " + charset.lowercase())
                 val resKey = Pair( (correspondingKey.first + mod) % mod, (correspondingKey.second + mod) % mod )
                 println("Key for the following text is: $resKey")
