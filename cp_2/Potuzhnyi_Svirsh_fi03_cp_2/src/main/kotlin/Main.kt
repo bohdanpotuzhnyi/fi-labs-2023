@@ -4,10 +4,10 @@ import kotlin.math.abs
 const val DIR = "D:\\kpi\\symcryptology\\lab\\cp_2\\Potuzhnyi_Svirsh_fi03_cp_2\\src\\main\\resources\\"
 
 object CypherText {
-    const val charset = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    const val charset = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
     var freq : Map<Char, Double>
     private fun letterProbability(fileName: String): Map<Char, Double> {
-        val fileText = File(fileName).readText().uppercase().filter { it in charset }
+        val fileText = File(fileName).readText().lowercase().filter { it in charset }
         val letterCount = mutableMapOf<Char, Int>()
 
         for (char in charset) {
@@ -25,8 +25,8 @@ object CypherText {
 
 class VigenereCipher {
     fun encode(text: String, key: String, charset: String = CypherText.charset): String {
-        val upperKey = key.uppercase()
-        val upperText = text.uppercase()
+        val upperKey = key.lowercase()
+        val upperText = text.lowercase()
         return upperText.mapIndexed { index, char ->
             val keyIndex = charset.indexOf(upperKey[index % upperKey.length])
             val textIndex = charset.indexOf(char)
@@ -35,8 +35,8 @@ class VigenereCipher {
     }
 
     fun decode(text: String, key: String, charset: String = CypherText.charset): String {
-        val upperKey = key.uppercase()
-        val upperText = text.uppercase()
+        val upperKey = key.lowercase()
+        val upperText = text.lowercase()
         return upperText.mapIndexed { index, char ->
             val keyIndex = charset.indexOf(upperKey[index % upperKey.length])
             val textIndex = charset.indexOf(char)
@@ -76,8 +76,8 @@ fun get_r(text: String, start: Int = 1, end: Int = 30): Map<Int, Double> {
 }
 
 fun main() {
-    val openText = File(DIR +"fileToEncrypt").readText().uppercase().filter { it in CypherText.charset }
-    val keys = listOf("ХЛ", "ЗЛО", "ХЛПК", "ПТХХЛ", "ЙОБАНАРУСНЯ".uppercase())
+    val openText = File(DIR +"fileToEncrypt").readText().lowercase().filter { it in CypherText.charset }
+    val keys = listOf("ХЛ", "ЗЛО", "ХЛПК", "ПТХХЛ", "ЙОБАНАРУСНЯ".lowercase())
     val vigenere = VigenereCipher()
 
     val encodings = keys.map { key -> vigenere.encode(openText, key) }
@@ -103,7 +103,7 @@ fun main() {
     }
 
     val cypherFileName = DIR + "cipher_var15"
-    val cypher = File(cypherFileName).readText().uppercase().filter { it in CypherText.charset }
+    val cypher = File(cypherFileName).readText().lowercase().filter { it in CypherText.charset }
     
     val matchDict = get_r(cypher)
     val matchList = matchDict.entries.sortedBy { (_, value) -> abs(value - open_r) }
